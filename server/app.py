@@ -16,12 +16,42 @@ db.init_app(app)
 
 api = Api(app)
 
+class Home(Resource):
+    def get(self):
+        response_dict = {"message": "Welcome to the Plant RESTful API"}
+        response = make_response(response_dict, 200)
+        return response
+
+api.add_resource(Home, '/')
+    
 class Plants(Resource):
-    pass
+    def get(self):
+        plants_list = [plant.to_dict() for plant in Plant.query.all()]
+        response = make_response(plants_list, 200)
+        return response
+    
+    def post(self):
+        new_plant = Plant(
+            name = request.json['name'],
+            image = request.json['image'],
+            price = request.json['price']
+        )
+
+        db.session.add(new_plant)
+        db.session.commit()
+
+        response = make_response(jsonify(new_plant.to_dict()), 200)
+        return response
+
+api.add_resource(Plants, '/plants')
 
 class PlantByID(Resource):
-    pass
+    def get(self, id):
+        plants_dict = Plant.query.filter_by(id=id).first().to_dict()
+        response = make_response(plants_dict, 200)
+        return response
         
+api.add_resource(PlantByID, '/plants/<int:id>')
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    app.run(port=5554, debug=True)
